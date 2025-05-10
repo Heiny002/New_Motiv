@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from '../config/database';
-import { authenticateUser } from './middleware/auth';
+import userRoutes from './routes/user.routes';
 
 // Load environment variables
 dotenv.config();
@@ -19,17 +19,13 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
-// Test protected route
-app.get('/api/protected', authenticateUser, (req, res) => {
-    res.json({ message: 'This is a protected route', user: req.user });
-});
+// Routes
+app.use('/api', userRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
-
-// Routes will be added here
 
 const PORT = process.env.PORT || 5000;
 
