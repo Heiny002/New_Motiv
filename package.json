@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@types/firebase": "^2.4.32",
+    "@types/helmet": "^0.0.48",
+    "dotenv": "^16.5.0",
+    "firebase": "^11.7.1",
+    "firebase-admin": "^13.3.0",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.14.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.1",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^22.15.17"
+  }
+}
