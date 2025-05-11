@@ -1,141 +1,207 @@
-import { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service';
+import { Request, Response, NextFunction } from 'express';
+import { getAuth } from 'firebase-admin/auth';
+import { UserService } from '../services/user.service';
 
-export class UserController {
-    /**
-     * Register a new user
-     * @route POST /api/auth/register
-     */
-    static async register(req: Request, res: Response) {
-        try {
-            const { email, password, displayName } = req.body;
+/**
+ * Register a new user
+ */
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { email, password, name } = req.body;
 
-            // Validate input
-            if (!email || !password) {
-                return res.status(400).json({ message: 'Email and password are required' });
-            }
+        // Create user in Firebase
+        const userRecord = await getAuth().createUser({
+            email,
+            password,
+            displayName: name,
+            emailVerified: false
+        });
 
-            // Create user in Firebase
-            const userRecord = await AuthService.createUser(email, password, displayName);
+        // Create user profile in MongoDB
+        const userProfile = await UserService.createUserProfile(userRecord);
 
-            // Send verification email
-            await AuthService.sendEmailVerification(email);
+        // Send verification email
+        await getAuth().generateEmailVerificationLink(email);
 
-            res.status(201).json({
-                message: 'User registered successfully',
-                user: {
-                    uid: userRecord.uid,
-                    email: userRecord.email,
-                    displayName: userRecord.displayName
-                }
-            });
-        } catch (error: any) {
-            console.error('Registration error:', error);
-            res.status(400).json({
-                message: error.message || 'Error registering user'
-            });
-        }
-    }
-
-    /**
-     * Get current user profile
-     * @route GET /api/users/profile
-     */
-    static async getProfile(req: Request, res: Response) {
-        try {
-            const user = req.user;
-            if (!user) {
-                return res.status(401).json({ message: 'User not authenticated' });
-            }
-
-            const userRecord = await AuthService.getUserByEmail(user.email);
-            res.json({
+        res.status(201).json({
+            message: 'User registered successfully',
+            user: {
                 uid: userRecord.uid,
                 email: userRecord.email,
-                displayName: userRecord.displayName,
-                emailVerified: userRecord.emailVerified
-            });
-        } catch (error: any) {
-            console.error('Get profile error:', error);
-            res.status(400).json({
-                message: error.message || 'Error getting user profile'
-            });
-        }
-    }
-
-    /**
-     * Update user profile
-     * @route PUT /api/users/profile
-     */
-    static async updateProfile(req: Request, res: Response) {
-        try {
-            const user = req.user;
-            if (!user) {
-                return res.status(401).json({ message: 'User not authenticated' });
+                name: userProfile.name,
+                emailVerified: userRecord.emailVerified,
+                coachPersonality: userProfile.coachPersonality
             }
-
-            const { displayName, email } = req.body;
-            const updates: any = {};
-
-            if (displayName) updates.displayName = displayName;
-            if (email) updates.email = email;
-
-            const updatedUser = await AuthService.updateUser(user.uid, updates);
-            res.json({
-                message: 'Profile updated successfully',
-                user: {
-                    uid: updatedUser.uid,
-                    email: updatedUser.email,
-                    displayName: updatedUser.displayName
-                }
-            });
-        } catch (error: any) {
-            console.error('Update profile error:', error);
-            res.status(400).json({
-                message: error.message || 'Error updating profile'
-            });
-        }
+        });
+    } catch (error) {
+        next(error);
     }
+};
 
-    /**
-     * Request password reset
-     * @route POST /api/auth/reset-password
-     */
-    static async requestPasswordReset(req: Request, res: Response) {
-        try {
-            const { email } = req.body;
-            if (!email) {
-                return res.status(400).json({ message: 'Email is required' });
+/**
+ * Get user profile
+ */
+export const getProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.user?.uid) {
+            res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+            return;
+        }
+
+        const userProfile = await UserService.getUserProfile(req.user.uid);
+        if (!userProfile) {
+            res.status(404).json({
+                error: 'Not Found',
+                message: 'User profile not found'
+            });
+            return;
+        }
+
+        res.json({
+            user: {
+                uid: userProfile.userId,
+                email: userProfile.email,
+                name: userProfile.name,
+                emailVerified: req.user.emailVerified,
+                coachPersonality: userProfile.coachPersonality,
+                preferences: userProfile.preferences,
+                dashboardConfig: userProfile.dashboardConfig,
+                lastActive: userProfile.lastActive
             }
-
-            await AuthService.sendPasswordResetEmail(email);
-            res.json({ message: 'Password reset email sent' });
-        } catch (error: any) {
-            console.error('Password reset request error:', error);
-            res.status(400).json({
-                message: error.message || 'Error sending password reset email'
-            });
-        }
+        });
+    } catch (error) {
+        next(error);
     }
+};
 
-    /**
-     * Delete user account
-     * @route DELETE /api/users/profile
-     */
-    static async deleteAccount(req: Request, res: Response) {
-        try {
-            const user = req.user;
-            if (!user) {
-                return res.status(401).json({ message: 'User not authenticated' });
+/**
+ * Update user profile
+ */
+export const updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.user?.uid) {
+            res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+            return;
+        }
+
+        const { name, coachPersonality } = req.body;
+        
+        // Update Firebase profile
+        await getAuth().updateUser(req.user.uid, {
+            displayName: name
+        });
+
+        // Update MongoDB profile
+        const updatedProfile = await UserService.updateUserProfile(req.user.uid, {
+            name,
+            coachPersonality
+        });
+
+        res.json({
+            message: 'Profile updated successfully',
+            user: {
+                uid: updatedProfile?.userId,
+                email: updatedProfile?.email,
+                name: updatedProfile?.name,
+                emailVerified: req.user.emailVerified,
+                coachPersonality: updatedProfile?.coachPersonality
             }
-
-            await AuthService.deleteUser(user.uid);
-            res.json({ message: 'Account deleted successfully' });
-        } catch (error: any) {
-            console.error('Delete account error:', error);
-            res.status(400).json({
-                message: error.message || 'Error deleting account'
-            });
-        }
+        });
+    } catch (error) {
+        next(error);
     }
-} 
+};
+
+/**
+ * Update user preferences
+ */
+export const updatePreferences = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.user?.uid) {
+            res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+            return;
+        }
+
+        const { preferences } = req.body;
+        const updatedProfile = await UserService.updatePreferences(req.user.uid, preferences);
+
+        res.json({
+            message: 'Preferences updated successfully',
+            preferences: updatedProfile?.preferences
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Update dashboard configuration
+ */
+export const updateDashboardConfig = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.user?.uid) {
+            res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+            return;
+        }
+
+        const { dashboardConfig } = req.body;
+        const updatedProfile = await UserService.updateDashboardConfig(req.user.uid, dashboardConfig);
+
+        res.json({
+            message: 'Dashboard configuration updated successfully',
+            dashboardConfig: updatedProfile?.dashboardConfig
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Request password reset
+ */
+export const requestPasswordReset = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { email } = req.body;
+        await getAuth().generatePasswordResetLink(email);
+        
+        res.json({
+            message: 'Password reset email sent'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Delete user account
+ */
+export const deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.user?.uid) {
+            res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+            return;
+        }
+
+        await UserService.deleteUser(req.user.uid);
+        res.json({
+            message: 'Account deleted successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+}; 

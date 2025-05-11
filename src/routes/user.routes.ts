@@ -1,17 +1,27 @@
 import { Router } from 'express';
-import { UserController } from '../controllers/user.controller';
-import { authenticateUser } from '../middleware/auth';
+import { authenticateUser, optionalAuth } from '../middleware/auth.middleware';
 import { validateRegistration, validateProfileUpdate } from '../middleware/validation';
+import {
+    register,
+    getProfile,
+    updateProfile,
+    requestPasswordReset,
+    deleteAccount,
+    updatePreferences,
+    updateDashboardConfig
+} from '../controllers/user.controller';
 
 const router = Router();
 
 // Public routes
-router.post('/auth/register', validateRegistration, UserController.register);
-router.post('/auth/reset-password', UserController.requestPasswordReset);
+router.post('/register', validateRegistration, register);
+router.post('/reset-password', requestPasswordReset);
 
 // Protected routes
-router.get('/users/profile', authenticateUser, UserController.getProfile);
-router.put('/users/profile', authenticateUser, validateProfileUpdate, UserController.updateProfile);
-router.delete('/users/profile', authenticateUser, UserController.deleteAccount);
+router.get('/profile', authenticateUser, getProfile);
+router.put('/profile', authenticateUser, validateProfileUpdate, updateProfile);
+router.put('/preferences', authenticateUser, updatePreferences);
+router.put('/dashboard-config', authenticateUser, updateDashboardConfig);
+router.delete('/account', authenticateUser, deleteAccount);
 
 export default router; 

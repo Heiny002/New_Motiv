@@ -1,34 +1,44 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
-import connectDB from '../config/database';
+import mongoose from 'mongoose';
+import { config } from 'dotenv';
+import { errorHandler } from './middleware/error';
 import userRoutes from './routes/user.routes';
 
 // Load environment variables
-dotenv.config();
+config();
 
-// Initialize express app
+// Initialize Express app
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 // Middleware
 app.use(cors());
-app.use(helmet());
 app.use(express.json());
-
-// Routes
-app.use('/api', userRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT || 5000;
+// Routes
+app.use('/api', userRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-}); 
+// Error handling middleware
+app.use(errorHandler);
+
+// Connect to MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/motiv';
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        console.log('Connected to MongoDB');
+        
+        // Start server
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error('MongoDB connection error:', error);
+        process.exit(1);
+    }); 
