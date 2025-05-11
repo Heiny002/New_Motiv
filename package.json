@@ -11,6 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.50.3",
     "@types/firebase": "^2.4.32",
     "@types/helmet": "^0.0.48",
     "cors": "^2.8.5",
