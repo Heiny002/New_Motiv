@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
-import { errorHandler } from './middleware/error';
 import userRoutes from './routes/user.routes';
+import coachRoutes from './routes/coach.routes';
+import { errorHandler } from './middleware/error';
 
 // Load environment variables
 config();
@@ -21,13 +22,18 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/api', userRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/coach', coachRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
 
 // Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/motiv';
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is required in environment variables');
+}
+
 mongoose.connect(MONGODB_URI)
     .then(() => {
         console.log('Connected to MongoDB');
