@@ -1,21 +1,24 @@
 # Dependencies
 node_modules/
-/.pnp
+.pnp/
 .pnp.js
 
 # Testing
 /coverage
+coverage/
 
 # Production
 /build
 /dist
+/out
 
 # Environment files
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
+.env.development
+.env.test
+.env.production
 
 # Debug logs
 npm-debug.log*
@@ -30,4 +33,33 @@ yarn-error.log*
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Backend specific
+backend/dist/
+backend/.env
+backend/logs/
+backend/tmp/
+
+# Frontend specific
+frontend/.next/
+frontend/out/
+frontend/.env
+frontend/.vercel
+frontend/.turbo
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Cache
+.cache/
+.turbo 

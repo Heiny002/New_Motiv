@@ -1,85 +1,81 @@
-# Motiv.ai
+# Motiv - AI-Powered Goal Achievement Platform
 
-A revolutionary personal goal achievement platform combining distinct AI coaching personalities with authentic social support and health tracking integration.
-
-## Features
-
-- AI Coaching Personalities (Sarge, Dr. Joy, Vector)
-- Goal Management System
-- Check-in System
-- Authentic Social Feed
-- Health Tracking Integration
-- Content Recommendation System
-
-## Tech Stack
-
-- Frontend: React.js with TypeScript
-- Backend: Node.js with Express
-- Database: MongoDB
-- Authentication: Firebase Authentication
-- AI Integration: Anthropic API
-- Styling: Styled Components
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-- Firebase account
-- MongoDB account
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/motiv-ai.git
-cd motiv-ai
-```
-
-2. Install dependencies:
-```bash
-cd frontend
-npm install
-```
-
-3. Create a `.env` file in the frontend directory with your Firebase configuration:
-```
-REACT_APP_FIREBASE_API_KEY=your_api_key
-REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
-REACT_APP_FIREBASE_PROJECT_ID=your_project_id
-REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-REACT_APP_FIREBASE_APP_ID=your_app_id
-```
-
-4. Start the development server:
-```bash
-npm start
-```
+Motiv is a full-stack application that helps users achieve their goals through AI-powered coaching and personalized support.
 
 ## Project Structure
 
+This is a monorepo containing both the backend and frontend applications:
+
 ```
-frontend/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── contexts/       # React contexts
-│   ├── pages/         # Page components
-│   ├── services/      # API and service integrations
-│   ├── App.tsx        # Main app component
-│   └── index.tsx      # Entry point
-├── public/            # Static files
-└── package.json       # Dependencies and scripts
+motiv/
+├── backend/           # Node.js/Express backend
+│   ├── src/          # Source code
+│   ├── config/       # Configuration files
+│   └── tests/        # Backend tests
+├── frontend/         # React frontend
+│   ├── src/         # Source code
+│   ├── public/      # Static files
+│   └── tests/       # Frontend tests
+└── package.json     # Root package.json for managing the monorepo
 ```
+
+## Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+- MongoDB >= 6.0
+- Redis (for caching)
+
+## Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Heiny002/New_Motiv.git
+   cd New_Motiv
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   - Copy `.env.example` to `.env` in both backend and frontend directories
+   - Update the variables with your configuration
+
+4. **Start the development servers:**
+   ```bash
+   npm run dev
+   ```
+
+## Available Scripts
+
+- `npm run dev` - Start both backend and frontend in development mode
+- `npm run build` - Build both backend and frontend
+- `npm run test` - Run tests for both backend and frontend
+- `npm run lint` - Run linting for both backend and frontend
+- `npm run format` - Format code using Prettier
+
+## Development Workflow
+
+1. **Backend Development:**
+   - Located in the `backend` directory
+   - Built with Node.js, Express, and TypeScript
+   - Uses MongoDB for data storage
+   - Implements RESTful API endpoints
+
+2. **Frontend Development:**
+   - Located in the `frontend` directory
+   - Built with React and TypeScript
+   - Uses modern React features and hooks
+   - Implements responsive design
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Create a new branch for your feature
+2. Make your changes
+3. Run tests and ensure they pass
+4. Submit a pull request
 
 ## License
 
